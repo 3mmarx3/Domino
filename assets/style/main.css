@@ -203,7 +203,7 @@ body{
 
 .wizard-viewport{ overflow:hidden; position:relative; }
 .wizard-track{ display:flex; width:100%; transition: transform .5s cubic-bezier(.22,.8,.25,1); }
-.wizard-screen{ width:100%; flex-shrink:0; padding:2px; }
+.wizard-screen{ width:100%; flex-shrink:0;  }
 
 .resume-banner{
   background: linear-gradient(90deg, var(--gold-soft), transparent);
