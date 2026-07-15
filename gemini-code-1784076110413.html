@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة الدومينو</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2c3e50; }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #219150; }
+        .game-section { display: none; }
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+        .team-score { width: 45%; }
+        .team-score h2 { margin: 0 0 10px 0; font-size: 20px; color: #2980b9; }
+        .total { font-size: 30px; font-weight: bold; color: #e74c3c; }
+        .history {
+            margin-top: 20px;
+            text-align: right;
+            border-top: 2px solid #eee;
+            padding-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎲 حاسبة الدومينو 🎲</h1>
+
+    <!-- قسم الإعدادات (تحديد السكور والأسماء) -->
+    <div id="setupSection">
+        <label>السكور النهائي (عشان تكسب):</label>
+        <input type="number" id="targetScore" placeholder="مثال: 101 أو 151" value="101">
+        
+        <label>اسم الفريق الأول (أو اللاعب الأول):</label>
+        <input type="text" id="team1NameInput" placeholder="الفريق الأول">
+        
+        <label>اسم الفريق الثاني (أو اللاعب الثاني):</label>
+        <input type="text" id="team2NameInput" placeholder="الفريق الثاني">
+        
+        <button onclick="startGame()">ابدأ اللعب</button>
+    </div>
+
+    <!-- قسم اللعب وتسجيل النقاط -->
+    <div id="gameSection" class="game-section">
+        <h3 id="targetDisplay">الهدف: 0</h3>
+        
+        <div class="score-board">
+            <div class="team-score">
+                <h2 id="team1NameDisplay">فريق 1</h2>
+                <div class="total" id="team1Total">0</div>
+            </div>
+            <div class="team-score">
+                <h2 id="team2NameDisplay">فريق 2</h2>
+                <div class="total" id="team2Total">0</div>
+            </div>
+        </div>
+
+        <h3>تسجيل جولة جديدة:</h3>
+        <input type="number" id="team1RoundScore" placeholder="سكور الفريق الأول في الجولة">
+        <input type="number" id="team2RoundScore" placeholder="سكور الفريق الثاني في الجولة">
+        <button onclick="addRound()">ضيف السكور</button>
+
+        <div class="history">
+            <h3>تاريخ الجولات:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الجولة</th>
+                        <th id="thTeam1">فريق 1</th>
+                        <th id="thTeam2">فريق 2</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <!-- الجولات هتنزل هنا -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    let target = 0;
+    let t1Total = 0;
+    let t2Total = 0;
+    let roundCount = 0;
+    let t1Name = "";
+    let t2Name = "";
+
+    function startGame() {
+        // ناخد البيانات من الإعدادات
+        target = parseInt(document.getElementById('targetScore').value);
+        t1Name = document.getElementById('team1NameInput').value || "الفريق الأول";
+        t2Name = document.getElementById('team2NameInput').value || "الفريق الثاني";
+
+        if (!target || target <= 0) {
+            alert("لازم تحدد السكور النهائي صح يا غالي!");
+            return;
+        }
+
+        // نخفي الإعدادات ونظهر اللعبة
+        document.getElementById('setupSection').style.display = 'none';
+        document.getElementById('gameSection').style.display = 'block';
+
+        // نعرض الأسماء والهدف
+        document.getElementById('targetDisplay').innerText = "الهدف: " + target + " نقطة";
+        document.getElementById('team1NameDisplay').innerText = t1Name;
+        document.getElementById('team2NameDisplay').innerText = t2Name;
+        document.getElementById('thTeam1').innerText = t1Name;
+        document.getElementById('thTeam2').innerText = t2Name;
+    }
+
+    function addRound() {
+        let t1Score = parseInt(document.getElementById('team1RoundScore').value) || 0;
+        let t2Score = parseInt(document.getElementById('team2RoundScore').value) || 0;
+
+        if (t1Score === 0 && t2Score === 0) {
+            alert("اكتب سكور الجولة الأول!");
+            return;
+        }
+
+        // نزود التوتال
+        t1Total += t1Score;
+        t2Total += t2Score;
+        roundCount++;
+
+        // نحدث الأرقام في الشاشة
+        document.getElementById('team1Total').innerText = t1Total;
+        document.getElementById('team2Total').innerText = t2Total;
+
+        // نضيف الجولة في الجدول
+        let tableBody = document.getElementById('historyTableBody');
+        let newRow = `<tr>
+                        <td>${roundCount}</td>
+                        <td>${t1Score}</td>
+                        <td>${t2Score}</td>
+                      </tr>`;
+        tableBody.innerHTML += newRow;
+
+        // نفضي الخانات للجولة اللي بعدها
+        document.getElementById('team1RoundScore').value = '';
+        document.getElementById('team2RoundScore').value = '';
+
+        // نشوف مين كسب
+        checkWinner();
+    }
+
+    function checkWinner() {
+        if (t1Total >= target && t2Total >= target) {
+            if (t1Total > t2Total) {
+                alert("مبروووك! " + t1Name + " كسب الجيم!");
+            } else if (t2Total > t1Total) {
+                alert("مبروووك! " + t2Name + " كسب الجيم!");
+            } else {
+                alert("تعادل! العبوا جولة كمان تفك الاشتباك ده.");
+            }
+        } else if (t1Total >= target) {
+            alert("مبروووك! " + t1Name + " كسب الجيم!");
+        } else if (t2Total >= target) {
+            alert("مبروووك! " + t2Name + " كسب الجيم!");
+        }
+    }
+</script>
+
+</body>
+</html>
