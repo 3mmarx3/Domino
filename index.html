@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<title>Domino Score</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<link rel="stylesheet" href="./assets/style/main.css">
+
+</head>
+<body>
+
+<div class="felt-bg"></div>
+<div class="drift-tile" style="top:8%; left:4%; --rot:-14deg; animation-delay:0s;"></div>
+<div class="drift-tile" style="bottom:12%; right:6%; --rot:18deg; animation-delay:4s;"></div>
+<div class="drift-tile" style="top:60%; left:88%; --rot:-8deg; animation-delay:9s; width:34px; height:64px;"></div>
+
+<div class="app-shell">
+
+  <header class="app-header">
+    <div class="flex flex-col items-center mb-4 rise-in">
+      <div class="domino-chain mb-4">
+        <div class="d-tile" style="animation-delay:0s;"></div>
+        <div class="d-tile" style="animation-delay:.18s;"></div>
+        <div class="d-tile" style="animation-delay:.36s;"></div>
+        <div class="d-tile" style="animation-delay:.54s;"></div>
+        <div class="d-tile" style="animation-delay:.72s;"></div>
+      </div>
+      <div class="flex items-center gap-3 mb-2">
+        <svg width="34" height="22" viewBox="0 0 40 26" fill="none">
+          <rect x="1" y="1" width="38" height="24" rx="5" stroke="#c9a24b" stroke-width="1.5" fill="#131316"/>
+          <line x1="20" y1="4" x2="20" y2="22" stroke="#2a2a30" stroke-width="1.5"/>
+          <circle cx="10" cy="8" r="1.6" fill="#f2ede2"/>
+          <circle cx="10" cy="18" r="1.6" fill="#f2ede2"/>
+          <circle cx="30" cy="8" r="1.6" fill="#c9a24b"/>
+          <circle cx="30" cy="13" r="1.6" fill="#c9a24b"/>
+          <circle cx="30" cy="18" r="1.6" fill="#c9a24b"/>
+        </svg>
+        <h1 class="font-display text-4xl md:text-5xl tracking-wide">DOMINO SCORE</h1>
+      </div>
+      <p class="text-sm text-[var(--text-dim)] tracking-wide text-center">Set your match up step by step, then track every round live</p>
+    </div>
+  </header>
+
+  <div class="app-scroll">
+
+    <div id="resumeBanner" class="resume-banner mb-6 hidden-view rise-in flex items-center justify-between gap-3">
+      <span class="text-sm flex items-center gap-2"><i class="fa-solid fa-dice text-[var(--gold)]"></i> Your match was restored — nothing was lost.</span>
+      <button class="text-xs font-semibold text-[var(--gold)] w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" onclick="dismissResumeBanner()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div id="wizardWrap" class="rise-in">
+
+      <div class="step-labels" id="stepLabels">
+        <div class="step-dot active" data-step="1">1</div>
+        <div class="step-line" data-line="1"></div>
+        <div class="step-dot" data-step="2">2</div>
+        <div class="step-line" data-line="2"></div>
+        <div class="step-dot" data-step="3">3</div>
+        <div class="step-line" data-line="3"></div>
+        <div class="step-dot" data-step="4">4</div>
+      </div>
+
+      <div class="wizard-viewport">
+        <div class="wizard-track" id="wizardTrack">
+
+          <div class="wizard-screen">
+            <div class=" md:p-8">
+              <div class="flex items-center gap-2 mb-1">
+                <i class="fa-solid fa-flag-checkered text-[var(--gold)]"></i>
+                <h2 class="font-display text-2xl tracking-wide text-[var(--gold)]">STEP 1 · TARGET SCORE</h2>
+              </div>
+              <p class="text-sm text-[var(--text-dim)] mb-6">Pick the score that ends the match.</p>
+
+              <div class="grid grid-cols-3 gap-3 mb-4" id="presetGrid">
+                <div class="option-tile p-4" data-preset="101" onclick="choosePreset(101)">
+                  <div class="font-mono text-2xl font-bold">101</div>
+                  <div class="text-xs text-[var(--text-dim)] mt-1">Classic</div>
+                </div>
+                <div class="option-tile p-4" data-preset="151" onclick="choosePreset(151)">
+                  <div class="font-mono text-2xl font-bold">151</div>
+                  <div class="text-xs text-[var(--text-dim)] mt-1">Long game</div>
+                </div>
+                <div class="option-tile p-4" data-preset="custom" onclick="choosePreset('custom')">
+                  <div class="text-2xl"><i class="fa-solid fa-sliders"></i></div>
+                  <div class="text-xs text-[var(--text-dim)] mt-1">Custom</div>
+                </div>
+              </div>
+
+              <div id="customTargetWrap" class="hidden-view mb-2">
+                <label class="flex items-center gap-2 text-xs uppercase tracking-wider text-[var(--text-dim)] font-semibold mb-2">
+                  <i class="fa-solid fa-hashtag text-[var(--gold)]"></i> Custom target score
+                </label>
+                <input type="number" id="customTargetInput" class="input-field font-mono" placeholder="e.g. 200" oninput="onCustomTargetInput()">
+              </div>
+
+              <div class="flex justify-between items-center mt-6">
+                <span class="text-xs text-[var(--text-dim)] flex items-center gap-2">
+                  <i class="fa-solid fa-bullseye text-[var(--gold)]"></i>
+                  Selected target: <span id="targetPreview" class="text-[var(--gold)] font-mono font-bold">—</span>
+                </span>
+                <button class="btn btn-gold btn-icon" id="step1Next" onclick="goToStep(2)" disabled aria-label="Next">
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="wizard-screen">
+            <div class=" md:p-8">
+              <div class="flex items-center gap-2 mb-1">
+                <i class="fa-solid fa-users text-[var(--gold)]"></i>
+                <h2 class="font-display text-2xl tracking-wide text-[var(--gold)]">STEP 2 · MATCH FORMAT</h2>
+              </div>
+              <p class="text-sm text-[var(--text-dim)] mb-6">Choose how many players or teams are competing.</p>
+
+              <div class="grid grid-cols-2 gap-4 mb-2">
+                <div class="option-tile p-5" data-mode="2" onclick="chooseMode(2)">
+                  <div class="fa-icon-badge"><i class="fa-solid fa-user-group"></i></div>
+                  <div class="font-display text-xl tracking-wide">2 PLAYERS</div>
+                  <div class="text-xs text-[var(--text-dim)] mt-1">Head-to-head or teams</div>
+                </div>
+                <div class="option-tile p-5" data-mode="3" onclick="chooseMode(3)">
+                  <div class="fa-icon-badge"><i class="fa-solid fa-people-group"></i></div>
+                  <div class="font-display text-xl tracking-wide">3 PLAYERS</div>
+                  <div class="text-xs text-[var(--text-dim)] mt-1">Free-for-all</div>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-center mt-6">
+                <button class="btn btn-outline btn-icon" onclick="goToStep(1)" aria-label="Back">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button class="btn btn-gold btn-icon" onclick="goToStep(3)" aria-label="Next">
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="wizard-screen">
+            <div class=" md:p-8">
+              <div class="flex items-center gap-2 mb-1">
+                <i class="fa-solid fa-id-badge text-[var(--gold)]"></i>
+                <h2 class="font-display text-2xl tracking-wide text-[var(--gold)]">STEP 3 · WHO'S PLAYING</h2>
+              </div>
+              <p class="text-sm text-[var(--text-dim)] mb-6">Name each player or team. Leave blank to use defaults.</p>
+
+              <div id="namesContainer" class="grid gap-4 mb-2"></div>
+
+              <div class="flex justify-between items-center mt-6">
+                <button class="btn btn-outline btn-icon" onclick="goToStep(2)" aria-label="Back">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button class="btn btn-gold btn-icon" onclick="prepareReview(); goToStep(4);" aria-label="Next">
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="wizard-screen">
+            <div class=" md:p-8">
+              <div class="flex items-center gap-2 mb-1">
+                <i class="fa-solid fa-circle-check text-[var(--gold)]"></i>
+                <h2 class="font-display text-2xl tracking-wide text-[var(--gold)]">STEP 4 · REVIEW</h2>
+              </div>
+              <p class="text-sm text-[var(--text-dim)] mb-6">Confirm the details, then start the match.</p>
+
+              <div class="tile-seam mb-4"></div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs uppercase tracking-wider text-[var(--text-dim)] font-semibold flex items-center gap-2">
+                  <i class="fa-solid fa-bullseye text-[var(--gold)]"></i> Target score
+                </span>
+                <span id="reviewTarget" class="font-mono text-xl font-bold text-[var(--gold)]">—</span>
+              </div>
+              <div class="tile-seam mb-4"></div>
+              <div id="reviewPlayers" class="grid gap-2 mb-2"></div>
+
+              <div class="flex justify-between items-center mt-8">
+                <button class="btn btn-outline btn-icon" onclick="goToStep(3)" aria-label="Back">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button class="btn btn-gold " style="width:auto;" onclick="startGame()">
+                  <i class="fa-solid fa-dice"></i> Start Match
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <section id="gameView" class="hidden-view">
+
+      <div class="flex items-center justify-between mb-6 rise-in">
+        <h2 class="font-display text-2xl tracking-wide flex items-center gap-2">
+          <i class="fa-solid fa-chart-simple text-[var(--gold)]"></i> LIVE SCOREBOARD
+        </h2>
+        <span id="targetPill" class="font-mono text-xs px-3 py-1.5 rounded-full border border-[var(--line)] text-[var(--text-dim)] flex items-center gap-1">
+          <i class="fa-solid fa-bullseye"></i> 0
+        </span>
+      </div>
+
+      <div id="scoresGrid" class="grid gap-4 mb-8"></div>
+
+      <div class="tile-card p-6 md:p-8 mb-8 rise-in">
+        <h3 class="font-display text-xl mb-4 tracking-wide text-[var(--gold)] flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square"></i> RECORD THIS ROUND
+        </h3>
+        <div id="inputsGrid" class="grid gap-3 mb-4"></div>
+        <button class="btn btn-gold  w-full" onclick="addRound()">
+          <i class="fa-solid fa-plus"></i> Add Round
+        </button>
+      </div>
+
+      <div class="tile-card p-6 md:p-8 mb-8 rise-in">
+        <h3 class="font-display text-xl mb-4 tracking-wide text-[var(--gold)] flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left"></i> ROUND HISTORY
+        </h3>
+        <div class="overflow-x-auto">
+          <table>
+            <thead><tr id="tableHeaders"><th>Round</th></tr></thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+        <p id="emptyHistory" class="text-center text-sm text-[var(--text-dim)] py-6 flex flex-col items-center gap-2">
+          <i class="fa-regular fa-clipboard text-lg"></i> No rounds recorded yet — add your first round above.
+        </p>
+      </div>
+
+      <button class="btn btn-ghost-red w-full" onclick="askResetGame()">
+        <i class="fa-solid fa-arrow-rotate-left"></i> Reset Match
+      </button>
+    </section>
+
+  </div>
+</div>
+
+<div id="modalBackdrop" class="hidden-view fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.7);">
+  <div id="modalCard" class="tile-flip tile-card p-7 max-w-sm w-full text-center">
+    <div id="modalIcon" class="mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center"></div>
+    <h3 id="modalTitle" class="font-display text-2xl mb-2 tracking-wide"></h3>
+    <p id="modalBody" class="text-sm text-[var(--text-dim)] mb-6"></p>
+    <div id="modalActions" class="flex gap-3"></div>
+  </div>
+</div>
+
+<script src="./assets//script/app.js"></script>
+
+</body>
+</html>
